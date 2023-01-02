@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Input from '@mui/material/Input';
@@ -12,15 +12,46 @@ import TextField from '@mui/material/TextField';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Button from '@mui/material/Button';
+import { database } from '../firebase'
+import { ref, push, child, update } from "firebase/database";
 
 export default function SignUp() {
     const [showPassword, setShowPassword] = React.useState(false);
+
+    const [name, setName] = useState(null);
+    const [email, setEmail] = useState(null);
+    const [password, setPassword] = useState(null);
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
     };
+
+    const handleInputChange = (e) => {
+        const { id, value } = e.target;
+        if (id === "name") {
+            setName(value);
+        }
+        if (id === "email") {
+            setEmail(value);
+        }
+        if (id === "password") {
+            setPassword(value);
+        }
+    }
+
+    const handleSubmit = () => {
+        let obj = {
+            name: name,
+            email: email,
+            password: password,
+        }
+        const newPostKey = push(child(ref(database), 'posts')).key;
+        const updates = {};
+        updates['/' + newPostKey] = obj
+        return update(ref(database), updates);
+    }
 
     return (
         <div className="SignIn">
@@ -29,6 +60,8 @@ export default function SignUp() {
                 <Input
                     id="name"
                     aria-describedby="component-helper-text"
+                    onChange={(e) => handleInputChange(e)}
+                    value={name}
                 />
                 <FormHelperText id="name-helper">
                     Please enter your name
@@ -40,8 +73,10 @@ export default function SignUp() {
             <FormControl variant="standard">
                 <InputLabel htmlFor="component-helper">Email</InputLabel>
                 <Input
-                    id="name"
+                    id="email"
                     aria-describedby="component-helper-text"
+                    onChange={(e) => handleInputChange(e)}
+                    value={email}
                 />
                 <FormHelperText id="name-helper">
                     Please enter your email
@@ -52,7 +87,9 @@ export default function SignUp() {
             <FormControl sx={{ m: 4, width: '21ch' }} variant="outlined">
                 <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
                 <OutlinedInput
-                    id="outlined-adornment-password"
+                    id="password"
+                    onChange={(e) => handleInputChange(e)}
+                    value={password}
                     type={showPassword ? 'text' : 'password'}
                     endAdornment={
                         <InputAdornment position="end">
@@ -71,7 +108,7 @@ export default function SignUp() {
             </FormControl>
 
             <div id="SignInButton">
-                <Button variant="contained">Create Account</Button>
+                <Button onClick={() => handleSubmit()} className="register_data" variant="contained">Create Account</Button>
             </div>
         </div>
     )
